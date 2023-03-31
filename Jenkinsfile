@@ -40,7 +40,7 @@ pipeline {
               
                 
             }
-        }
+        
         
         stage('Create Package') {
             steps {
@@ -49,12 +49,11 @@ pipeline {
             }
         }
         
-         stage("Publish to Nexus") {
-             steps {
-        sh 'mvn deploy'
-      }
-    
-    }
+        stage('Deploy Artifact to Nexus') {
+            steps {
+                sh 'mvn deploy -Dmaven.test.skip=true -Pprod'
+            }
+        }
         
     
         stage("Build our Image") {
@@ -65,17 +64,21 @@ pipeline {
              }
        }
        
-       stage("Push to DockerHub") { 
+            stage("Push to DockerHub") { 
             steps { 
                 script {
                     
-			sh 'echo $DOCKERHUB_CREDENTIALS_PSW | sudo docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin';
-                sh 'sudo docker push omarsoltani/validation';
+                    withCredentials([string(credentialsId: 'DockerId', variable: 'Docker')]) {
+                        sh 'docker login -u omarsoltani -p ${Docker}'
+                        sh 'docker image push omarsoltani/validation:$BUILD_NUMBER'
                 }
             } 
-            
+            }
             
         }
+            
+            
+        
         
         stage("Docker-Compose") {
           steps {
