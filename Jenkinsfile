@@ -73,7 +73,7 @@ pipeline {
                 sh 'sudo docker push omarsoltani/validation';
                 }
             } 
-            }
+            
             
         }
         
